@@ -34,11 +34,13 @@ fi
 
 echo "-----> Bundling Apache (worker/fastcgi) version $APACHE_VERSION"
 APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache_mod_fastcgi-${APACHE_VERSION}.tgz"
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+mkdir -p /app/apache
+curl --silent --max-time 60 --location "$APACHE_URL" | tar xz -C /app/apache
 
-PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
 echo "-----> Bundling PHP FPM version $PHP_VERSION"
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
+mkdir -p /app/php
+curl --silent --max-time 60 --location "$PHP_URL" | tar xz -C /app/php
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
