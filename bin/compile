@@ -62,7 +62,7 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
-  ${BUILD_DIR}/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  ${BUILD_DIR}/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
   cd -
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
