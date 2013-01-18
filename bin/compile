@@ -16,10 +16,6 @@ CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 echo "-----> Compiling app in `pwd`"
-echo "-----> Current BUILD_DIR ${BUILD_DIR} contents:"
-find $BUILD_DIR
-echo "-----> Current CACHE_DIR ${CACHE_DIR} contents:"
-find $CACHE_DIR
 
 # include .files when moving things around
 shopt -s dotglob
@@ -30,6 +26,11 @@ cd $BUILD_DIR
 mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
 mv $CACHE_DIR/www .
+
+echo "-----> Current BUILD_DIR ${BUILD_DIR} contents:"
+find $BUILD_DIR
+echo "-----> Current CACHE_DIR ${CACHE_DIR} contents:"
+find $CACHE_DIR
 
 # keep Procfile
 if [ -f www/Procfile ]; then
