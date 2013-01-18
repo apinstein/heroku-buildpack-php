@@ -15,7 +15,7 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-echo "-----> Compiling app in `pwd`"
+echo "-----> Compiling app: contents of BUILD_DIR ${BUILD_DIR} will be deployed as /app"
 
 # include .files when moving things around
 shopt -s dotglob
@@ -27,11 +27,6 @@ mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
 mv $CACHE_DIR/www .
 
-echo "-----> Current BUILD_DIR ${BUILD_DIR} contents:"
-find $BUILD_DIR
-echo "-----> Current CACHE_DIR ${CACHE_DIR} contents:"
-find $CACHE_DIR
-
 # keep Procfile
 if [ -f www/Procfile ]; then
   mv www/Procfile .
@@ -39,13 +34,13 @@ fi
 
 echo "-----> Bundling Apache (worker/fastcgi) version $APACHE_VERSION"
 APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache_mod_fastcgi-${APACHE_VERSION}.tgz"
-mkdir -p /app/apache
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz -C /app/apache
+mkdir -p ${APACHE_PATH}
+curl --silent --max-time 60 --location "$APACHE_URL" | tar xz -C ${APACHE_PATH}
 
 echo "-----> Bundling PHP FPM version $PHP_VERSION"
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
-mkdir -p /app/php
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz -C /app/php
+mkdir -p ${PHP_PATH}
+curl --silent --max-time 60 --location "$PHP_URL" | tar xz -C ${PHP_PATH}
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
