@@ -15,7 +15,11 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-echo "-----> Compiling app in `pwd`, BUILD_DIR=${BUILD_DIR} CACHE_DIR=${CACHE_DIR}"
+echo "-----> Compiling app in `pwd`"
+echo "-----> Current BUILD_DIR ${BUILD_DIR} contents:"
+find $BUILD_DIR
+echo "-----> Current CACHE_DIR ${CACHE_DIR} contents:"
+find $CACHE_DIR
 
 # include .files when moving things around
 shopt -s dotglob
