@@ -44,29 +44,48 @@ echo "-----> Bundling PHP FPM version $PHP_VERSION"
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
 mkdir -p ${PHP_PATH}
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz -C ${PHP_PATH}
+mkdir -p $BUILD_DIR/run
+mkdir -p $BUILD_DIR/fcgi
+ln -s /app/www $BUILD_DIR/fcgi/
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-cp $LP_DIR/conf/php.ini php
+cp $LP_DIR/conf/php.ini $BUILD_DIR/php
+cp $LP_DIR/conf/php-fpm.conf $BUILD_DIR/php
+
+# Preserve current php-fpm.conf so that env list does
+# not go out of hand across restarts.
+# From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
+if [ -r $BUILD_DIR/php/php-fpm.conf.current ]; then
+  cp -f $BUILD_DIR/php/php-fpm.conf.current $BUILD_DIR/php/php-fpm.conf
+else
+  cp -f $BUILD_DIR/php/php-fpm.conf $BUILD_DIR/php/php-fpm.conf.current
+fi
+
+# Expose Heroku config vars to PHP-FPM processes
+# From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
+for var in `env | cut -f1 -d=`; do
+  echo "env[$var] = \$${var}" >> $BUILD_DIR/php/php-fpm.conf
+done
 
 # make php available on bin
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 # check if we have Composer dependencies and vendors are not bundled
-if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
-  curl --silent --max-time 60 --location "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz" | tar xz -C /app
-  GIT_DIR_ORIG=$GIT_DIR
-  unset GIT_DIR
-  echo "-----> Installing Composer dependencies"
-  COMPOSER_URL="http://getcomposer.org/composer.phar"
-  curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
-  cd www
-  ${BUILD_DIR}/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
-  cd -
-  rm www/composer.phar
-  export GIT_DIR=$GIT_DIR_ORIG
-fi
+# if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
+#   curl --silent --max-time 60 --location "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz" | tar xz -C /app
+#   GIT_DIR_ORIG=$GIT_DIR
+#   unset GIT_DIR
+#   echo "-----> Installing Composer dependencies"
+#   COMPOSER_URL="http://getcomposer.org/composer.phar"
+#   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
+#   cd www
+#   ${BUILD_DIR}/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+#   cd -
+#   rm www/composer.phar
+#   export GIT_DIR=$GIT_DIR_ORIG
+# fi
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
@@ -79,6 +98,7 @@ tail -F /app/apache/logs/access_log &
 export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
+exec /app/php/bin/php-cgi
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
 
