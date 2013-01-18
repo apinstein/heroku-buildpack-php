@@ -33,7 +33,7 @@ if [ -f www/Procfile ]; then
 fi
 
 echo "-----> Bundling Apache (worker/fastcgi) version $APACHE_VERSION"
-APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache+mod_fastcgi-${APACHE_VERSION}.tgz"
+APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache_mod_fastcgi-${APACHE_VERSION}.tgz"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
