@@ -4,6 +4,8 @@
 # fail fast
 set -e
 
+export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
+
 # config
 APACHE_VERSION="2.2.22"
 APACHE_PATH="apache"
@@ -52,6 +54,7 @@ ln -s /app/php/bin/php bin/php
 
 # check if we have Composer dependencies and vendors are not bundled
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
+  curl --silent --max-time 60 --location "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz" | tar xz -C /app
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
   echo "-----> Installing Composer dependencies"
