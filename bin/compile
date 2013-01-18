@@ -5,6 +5,7 @@
 set -e
 
 export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
+export PATH=/app/bin:$PATH
 
 # config
 APACHE_VERSION="2.2.22"
