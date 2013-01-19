@@ -11,7 +11,7 @@ export PATH=/app/bin:$PATH
 # config
 APACHE_VERSION="2.2.23"
 APACHE_PATH="apache"
-MOD_FASTCGI_VERSION="2.2.23"
+MOD_FASTCGI_VERSION="2.4.6"
 MOD_FASTCGI_PATH="${APACHE_PATH}/modules"
 PHP_VERSION="5.3.21"
 PHP_PATH="php"
@@ -43,6 +43,7 @@ APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache
 mkdir -p ${APACHE_PATH}
 (curl --silent --max-time 60 --location "$APACHE_URL" || echo FAIL) | tar xz -C ${APACHE_PATH}
 MOD_FASTCGI_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/mod_fastcgi-${MOD_FASTCGI_VERSION}.tgz"
+echo $MOD_FASTCGI_URL
 mkdir -p ${MOD_FASTCGI_PATH}
 (curl --silent --max-time 60 --location "$MOD_FASTCGI_URL" || echo FAIL) | tar xz -C ${MOD_FASTCGI_PATH}
 
