@@ -8,8 +8,10 @@ export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
 export PATH=/app/bin:$PATH
 
 # config
-APACHE_VERSION="2.2.22"
+APACHE_VERSION="2.2.23"
 APACHE_PATH="apache"
+MOD_FASTCGI_VERSION="2.2.23"
+MOD_FASTCGI_PATH="${APACHE_PATH}/modules"
 PHP_VERSION="5.3.21"
 PHP_PATH="php"
 
@@ -36,9 +38,14 @@ if [ -f www/Procfile ]; then
 fi
 
 echo "-----> Bundling Apache (worker/fastcgi) version $APACHE_VERSION"
-APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache_mod_fastcgi-${APACHE_VERSION}.tgz"
+APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 mkdir -p ${APACHE_PATH}
+echo curl --silent --max-time 60 --location "$APACHE_URL" | tar xz -C ${APACHE_PATH}
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz -C ${APACHE_PATH}
+MOD_FASTCGI_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/mod_fastcgi-${MOD_FASTCGI_VERSION}.tgz"
+mkdir -p ${MOD_FASTCGI_PATH}
+echo curl --silent --max-time 60 --location "$MOD_FASTCGI_URL" | tar xz -C ${MOD_FASTCGI_PATH}
+curl --silent --max-time 60 --location "$MOD_FASTCGI_URL" | tar xz -C ${MOD_FASTCGI_PATH}
 
 echo "-----> Bundling PHP FPM version $PHP_VERSION"
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
@@ -73,19 +80,19 @@ mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 # check if we have Composer dependencies and vendors are not bundled
-# if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
-#   curl --silent --max-time 60 --location "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz" | tar xz -C /app
-#   GIT_DIR_ORIG=$GIT_DIR
-#   unset GIT_DIR
-#   echo "-----> Installing Composer dependencies"
-#   COMPOSER_URL="http://getcomposer.org/composer.phar"
-#   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
-#   cd www
-#   ${BUILD_DIR}/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
-#   cd -
-#   rm www/composer.phar
-#   export GIT_DIR=$GIT_DIR_ORIG
-# fi
+if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
+  curl --silent --max-time 60 --location "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz" | tar xz -C /app
+  GIT_DIR_ORIG=$GIT_DIR
+  unset GIT_DIR
+  echo "-----> Installing Composer dependencies"
+  COMPOSER_URL="http://getcomposer.org/composer.phar"
+  curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
+  cd www
+  ${BUILD_DIR}/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  cd -
+  rm www/composer.phar
+  export GIT_DIR=$GIT_DIR_ORIG
+fi
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
