@@ -12,7 +12,7 @@
 set -e
 trap 'echo "Last command: $BASH_COMMAND"' ERR
 indent() {
-    sed -u 's/^/       /'
+    sed -e 's/^/       /'
 }
 
 # can we get rid of this now that we have .profile.d? Not sure if that runs before bin/compile... I think it's only for the actual application..
