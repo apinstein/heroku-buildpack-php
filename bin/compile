@@ -25,6 +25,17 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BUILDPACK_DIR=`cd $(dirname $0); cd ..; pwd`
 
+function cached_download() {
+    url=$1
+    extractLocation=$2
+    [[ $url == '' || $extractLocation == '' ]] && echo "Usage: cached_download(url, extract_dir)" && exit 1
+
+    filename=`basename ${url}`
+    [[ ! -f ${CACHE_DIR}/${filename} ]] && (echo "Downloading ${filename}" | indent) && curl --silent --max-time 60 --location "${url}" > "${CACHE_DIR}/${filename}"
+
+    tar -C ${extractLocation} -zxf "${CACHE_DIR}/${filename}"
+}
+
 echo "-----> Compiling app: contents of BUILD_DIR ${BUILD_DIR} will be deployed as /app"
 
 # include .files when moving things around
@@ -56,17 +67,18 @@ PHP_PATH="${VENDOR_DIR}/php"
 
 APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 mkdir -p ${APACHE_PATH}
-(curl --silent --max-time 60 --location "$APACHE_URL" || echo FAIL) | tar xz -C ${APACHE_PATH}
+cached_download ${APACHE_URL} ${APACHE_PATH}
+
 MOD_FASTCGI_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/mod_fastcgi-${MOD_FASTCGI_VERSION}.tgz"
 mkdir -p ${MOD_FASTCGI_PATH}
-(curl --silent --max-time 60 --location "$MOD_FASTCGI_URL" || echo FAIL) | tar xz -C ${MOD_FASTCGI_PATH}
+cached_download ${MOD_FASTCGI_URL} ${MOD_FASTCGI_PATH}
 cp ${BUILDPACK_DIR}/support/httpd.conf ${APACHE_PATH}/conf/
 
 echo "Bundling PHP FPM version $PHP_VERSION" | indent
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
 mkdir -p ${PHP_PATH}
-(curl --silent --max-time 60 --location "$PHP_URL" || echo FAIL) | tar xz -C ${PHP_PATH}
-cp ${BUILDPACK_DIR}/support/php-fpm.conf ${BUILDPACK_DIR}/support/php.ini ${PHP_PATH}/conf/
+cached_download ${PHP_URL} ${PHP_PATH}
+cp ${BUILDPACK_DIR}/support/php-fpm.conf ${BUILDPACK_DIR}/support/php.ini ${PHP_PATH}/
 mkdir -p $BUILD_DIR/run
 mkdir -p $BUILD_DIR/fcgi
 ln -s /app/www $BUILD_DIR/fcgi/
@@ -100,8 +112,6 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
 fi
-
-cp 
 
 # this code needs info from this script, so it's easier to generate it inline here than copy an external template and munge values
 cat >>boot.sh <<EOF
