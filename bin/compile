@@ -59,11 +59,11 @@ mkdir -p ${VENDOR_DIR}
 echo "Bundling Apache (worker/fastcgi) version $APACHE_VERSION" | indent
 # config
 APACHE_VERSION="2.2.23"
-APACHE_PATH="${VENDOR_DIR}/apache"
+APACHE_PATH="apache"
 MOD_FASTCGI_VERSION="2.4.6"
 MOD_FASTCGI_PATH="${APACHE_PATH}/modules"
 PHP_VERSION="5.3.21"
-PHP_PATH="${VENDOR_DIR}/php"
+PHP_PATH="php"
 
 APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 mkdir -p ${APACHE_PATH}
