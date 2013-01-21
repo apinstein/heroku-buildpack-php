@@ -18,7 +18,7 @@ indent() {
 # can we get rid of this now that we have .profile.d? Not sure if that runs before bin/compile... I think it's only for the actual application..
 # alternatively hopefully we can get rid of it once we get /app/vendor installation working properly?
 export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
-export PATH=/app/bin:$PATH
+export PATH=/app/bin:/app/vendor/bin:$PATH
 
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
