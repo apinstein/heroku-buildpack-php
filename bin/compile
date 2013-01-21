@@ -23,7 +23,7 @@ export PATH=/app/bin:$PATH
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
 CACHE_DIR=$2
-LP_DIR=`cd $(dirname $0); cd ..; pwd`
+BUILDPACK_DIR=`cd $(dirname $0); cd ..; pwd`
 
 echo "-----> Compiling app: contents of BUILD_DIR ${BUILD_DIR} will be deployed as /app"
 
@@ -32,11 +32,10 @@ shopt -s dotglob
 
 cd $BUILD_DIR
 
-# move app things to www
+# move the git repo from /app to /app/www
 mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
 mv $CACHE_DIR/www .
-
 # keep Procfile
 if [ -f www/Procfile ]; then
   mv www/Procfile .
@@ -61,34 +60,27 @@ mkdir -p ${APACHE_PATH}
 MOD_FASTCGI_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/mod_fastcgi-${MOD_FASTCGI_VERSION}.tgz"
 mkdir -p ${MOD_FASTCGI_PATH}
 (curl --silent --max-time 60 --location "$MOD_FASTCGI_URL" || echo FAIL) | tar xz -C ${MOD_FASTCGI_PATH}
+cp ${BUILDPACK_DIR}/support/httpd.conf ${APACHE_PATH}/conf/
 
 echo "Bundling PHP FPM version $PHP_VERSION" | indent
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
 mkdir -p ${PHP_PATH}
 (curl --silent --max-time 60 --location "$PHP_URL" || echo FAIL) | tar xz -C ${PHP_PATH}
+cp ${BUILDPACK_DIR}/support/php-fpm.conf ${BUILDPACK_DIR}/support/php.ini ${PHP_PATH}/conf/
 mkdir -p $BUILD_DIR/run
 mkdir -p $BUILD_DIR/fcgi
 ln -s /app/www $BUILD_DIR/fcgi/
 
-# update config files
-#cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-#cp $LP_DIR/conf/php.ini $BUILD_DIR/php
-#cp $LP_DIR/conf/php-fpm.conf $BUILD_DIR/php
 
 # Preserve current php-fpm.conf so that env list does
 # not go out of hand across restarts.
 # From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
-if [ -r ${PHP_PATH}/php-fpm.conf.current ]; then
-  cp -f ${PHP_PATH}/php-fpm.conf.current ${PHP_PATH}/php-fpm.conf
-else
-  cp -f ${PHP_PATH}/etc/php-fpm.conf.default ${PHP_PATH}/php-fpm.conf
-fi
-
-# Expose Heroku config vars to PHP-FPM processes
-# From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
-for var in `env | cut -f1 -d=`; do
-  echo "env[$var] = \$${var}" >> ${PHP_PATH}/php-fpm.conf
-done
+# NOT sure this is needed; commenting out for now
+#if [ -r ${PHP_PATH}/php-fpm.conf.current ]; then
+#  cp -f ${PHP_PATH}/php-fpm.conf.current ${PHP_PATH}/php-fpm.conf
+#else
+#  cp -f ${PHP_PATH}/etc/php-fpm.conf.default ${PHP_PATH}/php-fpm.conf
+#fi
 
 # make php available on bin
 mkdir -p bin
@@ -103,26 +95,33 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --fail --silent --max-time 60 --location -o www/composer.phar "$COMPOSER_URL"
   cd www
-  ${PHP_PATH}/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  ${PHP_PATH}/bin/php composer.phar install --prefer-source
   cd -
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
 fi
 
+cp 
+
+# this code needs info from this script, so it's easier to generate it inline here than copy an external template and munge values
 cat >>boot.sh <<EOF
+# This code runs on every dyno launch
+export LD_LIBRARY_PATH=/app/lib:/app/vendor/apache/lib:$LD_LIBRARY_PATH
+mkdir -p /app/vendor/var/log
+
+echo "Launching php-fpm"
+# Expose Heroku config vars to PHP-FPM processes
+# From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
 for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> /app/vendor/apache/conf/httpd.conf;
+  echo "env[\$var] = \${var}" >> /app/${PHP_PATH}/php-fpm.conf
 done
+/app/vendor/php/sbin/php-fpm -y /app/vendor/php/php-fpm.conf -c /app/vendor/php/php.ini
+
+echo "Launching apache"
 touch /app/vendor/apache/logs/error_log
 touch /app/vendor/apache/logs/access_log
 tail -F /app/vendor/apache/logs/error_log &
 tail -F /app/vendor/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/lib:/app/vendor/apache/lib:$LD_LIBRARY_PATH
-export PHP_INI_SCAN_DIR=/app/www
-echo "Launching php-fpm"
-mkdir -p /app/vendor/var/log
-/app/vendor/php/sbin/php-fpm -y /app/vendor/php/php-fpm.conf
-echo "Launching apache"
 exec /app/vendor/apache/bin/httpd -d /app/vendor/apache -DNO_DETACH
 EOF
 
