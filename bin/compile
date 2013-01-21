@@ -114,7 +114,7 @@ touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/app/lib:/app/apache/lib:$LD_LIBRARY_PATH
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching php-fpm"
 mkdir -p /app/vendor/var/log
