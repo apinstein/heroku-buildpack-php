@@ -28,12 +28,13 @@ BUILDPACK_DIR=`cd $(dirname $0); cd ..; pwd`
 function cached_download() {
     url=$1
     extractLocation=$2
-    [[ $url == '' || $extractLocation == '' ]] && echo "Usage: cached_download(url, extract_dir)" && exit 1
+    [[ $url == '' || $extractLocation == '' ]] && echo "Usage: cached_download(url, extract_dir) where extract_dir is relative to BUILD_DIR" && exit 1
 
     filename=`basename ${url}`
     [[ ! -f ${CACHE_DIR}/${filename} ]] && (echo "Downloading ${filename}" | indent) && curl --silent --max-time 60 --location "${url}" > "${CACHE_DIR}/${filename}"
 
-    tar -C ${extractLocation} -zxf "${CACHE_DIR}/${filename}"
+    mkdir -p ${BUILD_DIR}/${extractLocation}
+    tar -C ${BUILD_DIR}/${extractLocation} -zxf "${CACHE_DIR}/${filename}"
 }
 
 echo "-----> Compiling app: contents of BUILD_DIR ${BUILD_DIR} will be deployed as /app"
@@ -53,17 +54,17 @@ if [ -f www/Procfile ]; then
 fi
 
 echo "-----> Installing buildpack binaries into /app/vendor"
-VENDOR_DIR=${BUILD_DIR}/vendor
+VENDOR_DIR=vendor
 mkdir -p ${VENDOR_DIR}
 
 echo "Bundling Apache (worker/fastcgi) version $APACHE_VERSION" | indent
 # config
 APACHE_VERSION="2.2.23"
-APACHE_PATH="apache"
+APACHE_PATH="${VENDOR_DIR}/apache"
 MOD_FASTCGI_VERSION="2.4.6"
 MOD_FASTCGI_PATH="${APACHE_PATH}/modules"
 PHP_VERSION="5.3.21"
-PHP_PATH="php"
+PHP_PATH="${VENDOR_DIR}/php"
 
 APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 mkdir -p ${APACHE_PATH}
@@ -101,7 +102,7 @@ ln -s /app/vendor/php/bin/php bin/php
 # check if we have Composer dependencies and vendors are not bundled
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   echo "-----> Installing Composer dependencies"
-  cached_download ${http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz} ${BUILD_DIR}
+  cached_download ${http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz} ${VENDOR_DIR}
 
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
