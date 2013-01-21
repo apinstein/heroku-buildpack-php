@@ -126,6 +126,3 @@ exec /app/vendor/apache/bin/httpd -d /app/vendor/apache -DNO_DETACH
 EOF
 
 chmod +x boot.sh
-
-# clean the cache
-rm -rf $CACHE_DIR
