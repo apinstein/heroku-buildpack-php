@@ -15,6 +15,8 @@ indent() {
     sed -u 's/^/       /'
 }
 
+# can we get rid of this now that we have .profile.d? Not sure if that runs before bin/compile... I think it's only for the actual application..
+# alternatively hopefully we can get rid of it once we get /app/vendor installation working properly?
 export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
 export PATH=/app/bin:$PATH
 
@@ -114,8 +116,10 @@ tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
 export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
 export PHP_INI_SCAN_DIR=/app/www
+echo "Launching php-fpm"
+mkdir -p /app/vendor/var/log
+/app/php/sbin/php-fpm  -y /app/php/php-fpm.conf
 echo "Launching apache"
-exec /app/php/bin/php-cgi
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
 
