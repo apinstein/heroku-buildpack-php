@@ -121,9 +121,9 @@ export LD_LIBRARY_PATH=/app/lib:/app/vendor/apache/lib:$LD_LIBRARY_PATH
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching php-fpm"
 mkdir -p /app/vendor/var/log
-/app/vendor/php/sbin/php-fpm
+/app/vendor/php/sbin/php-fpm -y /app/vendor/php/php-fpm.conf
 echo "Launching apache"
-exec /app/vendor/apache/bin/httpd -DNO_DETACH
+exec /app/vendor/apache/bin/httpd -d /app/vendor/apache -DNO_DETACH
 EOF
 
 chmod +x boot.sh
