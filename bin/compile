@@ -98,8 +98,6 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   echo "-----> Installing Composer dependencies"
   cached_download http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz ${VENDOR_DIR}
   export PATH=${BUILD_DIR}/${VENDOR_DIR}/bin:$PATH
-  ls -l ${VENDOR_DIR}/bin
-  echo $PATH
 
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
