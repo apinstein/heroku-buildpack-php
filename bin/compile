@@ -79,6 +79,9 @@ mkdir -p $BUILD_DIR/run
 mkdir -p $BUILD_DIR/fcgi
 ln -s /app/www $BUILD_DIR/fcgi/
 
+# create common directories for app to use
+mkdir -p ${BUILD_DIR}/shared
+mkdir -p ${BUILD_DIR}/shared/{runtime,log}
 
 # Preserve current php-fpm.conf so that env list does
 # not go out of hand across restarts.
