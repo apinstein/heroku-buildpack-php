@@ -100,16 +100,20 @@ ln -s /app/vendor/php/bin/php bin/php
 
 # check if we have Composer dependencies and vendors are not bundled
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
-  (curl --silent --max-time 60 --location "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz" || echo FAIL) | tar xz -C /app
+  echo "-----> Installing Composer dependencies"
+  cached_download ${http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz} ${BUILD_DIR}
+
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
-  echo "-----> Installing Composer dependencies"
-  COMPOSER_URL="http://getcomposer.org/composer.phar"
-  curl --fail --silent --max-time 60 --location -o www/composer.phar "$COMPOSER_URL"
   cd www
-  ${BUILD_DIR}/${PHP_PATH}/bin/php composer.phar install --prefer-source
+
+  [[ -f ${CACHE_DIR}/composer-vendor.tgz ]] && tar -zxf ${CACHE_DIR}/composer-vendor.tgz
+  COMPOSER_URL="http://getcomposer.org/composer.phar"
+  [[ ! -f ${CACHE_DIR}/composer.phar ]] && curl --fail --silent --max-time 60 --location -o www/composer.phar "$COMPOSER_URL"
+  ${BUILD_DIR}/${PHP_PATH}/bin/php ${CACHE_DIR}/composer.phar install --prefer-source
+  tar -zcf ${CACHE_DIR}/composer-vendor.tgz vendor
+
   cd -
-  rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
 fi
 
