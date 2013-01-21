@@ -10,7 +10,7 @@
 
 # fail fast
 set -e
-trap 'echo "Last command:\n$BASH_COMMAND"' EXIT
+trap '[[ $? != 0 ]] && echo "Last command:\n$BASH_COMMAND"' EXIT
 indent() {
     sed -u 's/^/       /'
 }
