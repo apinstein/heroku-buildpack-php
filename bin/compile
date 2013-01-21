@@ -15,11 +15,6 @@ indent() {
     sed -e 's/^/       /'
 }
 
-# can we get rid of this now that we have .profile.d? Not sure if that runs before bin/compile... I think it's only for the actual application..
-# alternatively hopefully we can get rid of it once we get /app/vendor installation working properly?
-export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH
-export PATH=/app/bin:/app/vendor/bin:$PATH
-
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
 CACHE_DIR=$2
@@ -95,14 +90,11 @@ ln -s /app/www $BUILD_DIR/fcgi/
 #  cp -f ${PHP_PATH}/etc/php-fpm.conf.default ${PHP_PATH}/php-fpm.conf
 #fi
 
-# make php available on bin
-mkdir -p bin
-ln -s /app/vendor/php/bin/php bin/php
-
 # check if we have Composer dependencies and vendors are not bundled
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   echo "-----> Installing Composer dependencies"
   cached_download "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz" ${VENDOR_DIR}
+  export PATH=${VENDOR_DIR}/bin:$PATH
 
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
