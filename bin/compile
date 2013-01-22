@@ -20,13 +20,34 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BUILDPACK_DIR=`cd $(dirname $0); cd ..; pwd`
 
+trim() {
+    local var=$1
+    var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
+    echo -n "$var"
+}
+
 function cached_download() {
     url=$1
     extractLocation=$2
     [[ $url == '' || $extractLocation == '' ]] && echo "Usage: cached_download(url, extract_dir) where extract_dir is relative to BUILD_DIR" && exit 1
 
     filename=`basename ${url}`
-    [[ ! -f ${CACHE_DIR}/${filename} ]] && (echo "Downloading ${filename}" | indent) && curl --silent --max-time 60 --location "${url}" > "${CACHE_DIR}/${filename}"
+    tgzFile=${CACHE_DIR}/${filename}
+
+    etagFile=${tgzFile}.etag
+    if [[ -f ${etagFile} ]]; then
+        cacheEtag=$(cat ${etagFile})
+    else
+        cacheEtag=notcached
+    fi
+    urlEtag=$(curl --silent -I ${url} | awk 'BEGIN {FS=": "}/^ETag/{print $2}')
+
+    cacheEtag=$(trim ${cacheEtag})
+    urlEtag=$(trim ${urlEtag})
+
+    [[ ! -f ${tgzFile} || ! -f ${etagFile} || "${urlEtag}" != "${cacheEtag}" ]] && (echo "Downloading ${filename}" | indent) && curl --silent --max-time 60 --location "${url}" > "${tgzFile}"
+    echo $urlEtag > ${etagFile}
 
     mkdir -p ${BUILD_DIR}/${extractLocation}
     tar -C ${BUILD_DIR}/${extractLocation} -zxf "${CACHE_DIR}/${filename}"
