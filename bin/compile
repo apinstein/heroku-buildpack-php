@@ -74,20 +74,21 @@ VENDOR_DIR=vendor
 mkdir -p ${VENDOR_DIR}
 
 echo "Bundling Apache (worker/fastcgi) version $APACHE_VERSION" | indent
-# config
 APACHE_VERSION="2.2.23"
 APACHE_PATH="${VENDOR_DIR}/apache"
 MOD_FASTCGI_VERSION="2.4.6"
 PHP_VERSION="5.3.21"
 PHP_PATH="${VENDOR_DIR}/php"
 
-APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 mkdir -p ${APACHE_PATH}
+APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 cached_download ${APACHE_URL} ${APACHE_PATH}
-
 MOD_FASTCGI_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/mod_fastcgi-${MOD_FASTCGI_VERSION}.tgz"
 cached_download ${MOD_FASTCGI_URL} ${APACHE_PATH}
+
+mkdir -p ${APACHE_PATH}/conf.d
 cp ${BUILDPACK_DIR}/support/httpd.conf ${APACHE_PATH}/conf/
+cp ${BUILDPACK_DIR}/support/mod_fastcgi.conf ${APACHE_PATH}/conf.d/
 
 echo "Bundling PHP FPM version $PHP_VERSION" | indent
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
