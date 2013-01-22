@@ -125,10 +125,10 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   [[ -f ${CACHE_DIR}/composer-vendor.tgz ]] && tar -zxf ${CACHE_DIR}/composer-vendor.tgz
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   [[ ! -f ${CACHE_DIR}/composer.phar ]] && curl --fail --silent --max-time 60 --location -o ${CACHE_DIR}/composer.phar "$COMPOSER_URL"
-  ${BUILD_DIR}/${PHP_PATH}/bin/php ${CACHE_DIR}/composer.phar install --prefer-source
+  ${BUILD_DIR}/${PHP_PATH}/bin/php ${CACHE_DIR}/composer.phar install --prefer-source | indent
   tar -zcf ${CACHE_DIR}/composer-vendor.tgz vendor
 
-  cd -
+  cd ..
   export GIT_DIR=$GIT_DIR_ORIG
 fi
 
