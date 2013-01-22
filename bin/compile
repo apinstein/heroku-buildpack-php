@@ -153,7 +153,6 @@ echo "Launching php-fpm"
 # Expose Heroku config vars to PHP-FPM processes
 # From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
 for var in \`env|cut -f1 -d=\`; do
-  echo fpm env passthru \$var
   echo "env[\$var] = \${var}" >> /app/${PHP_PATH}/php-fpm.conf
 done
 /app/${PHP_PATH}/sbin/php-fpm -y /app/${PHP_PATH}/php-fpm.conf -c /app/${PHP_PATH}/php.ini
