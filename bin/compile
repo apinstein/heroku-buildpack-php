@@ -157,6 +157,8 @@ touch /app/vendor/apache/logs/error_log
 touch /app/vendor/apache/logs/access_log
 tail -F /app/vendor/apache/logs/error_log &
 tail -F /app/vendor/apache/logs/access_log &
+tail -F /app/shared/log/error_log &
+tail -F /app/shared/log/access_log &
 exec /app/vendor/apache/bin/httpd -d /app/vendor/apache -DNO_DETACH
 EOF
 
