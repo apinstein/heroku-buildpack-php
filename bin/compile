@@ -57,7 +57,6 @@ echo "Bundling Apache (worker/fastcgi) version $APACHE_VERSION" | indent
 APACHE_VERSION="2.2.23"
 APACHE_PATH="${VENDOR_DIR}/apache"
 MOD_FASTCGI_VERSION="2.4.6"
-MOD_FASTCGI_PATH="${APACHE_PATH}/modules"
 PHP_VERSION="5.3.21"
 PHP_PATH="${VENDOR_DIR}/php"
 
@@ -66,8 +65,7 @@ mkdir -p ${APACHE_PATH}
 cached_download ${APACHE_URL} ${APACHE_PATH}
 
 MOD_FASTCGI_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/mod_fastcgi-${MOD_FASTCGI_VERSION}.tgz"
-mkdir -p ${MOD_FASTCGI_PATH}
-cached_download ${MOD_FASTCGI_URL} ${MOD_FASTCGI_PATH}
+cached_download ${MOD_FASTCGI_URL} ${APACHE_PATH}
 cp ${BUILDPACK_DIR}/support/httpd.conf ${APACHE_PATH}/conf/
 
 echo "Bundling PHP FPM version $PHP_VERSION" | indent
