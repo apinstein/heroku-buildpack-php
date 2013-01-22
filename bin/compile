@@ -146,17 +146,17 @@ echo "Launching php-fpm"
 # Expose Heroku config vars to PHP-FPM processes
 # From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
 for var in \`env|cut -f1 -d=\`; do
+  echo fpm env passthru \$var
   echo "env[\$var] = \${var}" >> /app/${PHP_PATH}/php-fpm.conf
 done
-/app/vendor/php/sbin/php-fpm -y /app/vendor/php/php-fpm.conf -c /app/vendor/php/php.ini
+/app/${PHP_PATH}/sbin/php-fpm -y /app/${PHP_PATH}/php-fpm.conf -c /app/${PHP_PATH}/php.ini
 
 echo "Launching apache"
-touch /app/vendor/apache/logs/error_log
-touch /app/vendor/apache/logs/access_log
-tail -F /app/vendor/apache/logs/error_log &
-tail -F /app/vendor/apache/logs/access_log &
 tail -F /app/shared/log/error_log &
 tail -F /app/shared/log/access_log &
+tail -F /app/shared/log/php-fpm-error.log &
+tail -F /app/vendor/apache/logs/error_log &
+tail -F /app/vendor/apache/logs/access_log &
 exec /app/vendor/apache/bin/httpd -d /app/vendor/apache -DNO_DETACH
 EOF
 
