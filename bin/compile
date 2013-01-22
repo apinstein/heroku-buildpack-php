@@ -136,6 +136,13 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   export GIT_DIR=$GIT_DIR_ORIG
 fi
 
+if [ -n ${CONFIG_MAGIC_PROFILE} ]; then
+  echo "-----> Config magic processing profile: ${CONFIG_MAGIC_PROFILE}"
+  cd www
+  ${BUILD_DIR}/${PHP_PATH}/bin/php vendor/bin/cfg ${CONFIG_MAGIC_PROFILE}
+  cd ..
+fi
+
 # this code needs info from this script, so it's easier to generate it inline here than copy an external template and munge values
 cat >>boot.sh <<EOF
 # This code runs on every dyno launch
