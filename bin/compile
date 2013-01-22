@@ -31,6 +31,9 @@ function cached_download() {
     url=$1
     extractLocation=$2
     [[ $url == '' || $extractLocation == '' ]] && echo "Usage: cached_download(url, extract_dir) where extract_dir is relative to BUILD_DIR" && exit 1
+    if [[ ${extractLocation:0:1} != "/" ]]; then
+        extractLocation=${BUILD_DIR}/${extractLocation}
+    fi
 
     filename=`basename ${url}`
     tgzFile=${CACHE_DIR}/${filename}
@@ -49,8 +52,8 @@ function cached_download() {
     [[ ! -f ${tgzFile} || ! -f ${etagFile} || "${urlEtag}" != "${cacheEtag}" ]] && (echo "Downloading ${filename}" | indent) && curl --silent --max-time 60 --location "${url}" > "${tgzFile}"
     echo $urlEtag > ${etagFile}
 
-    mkdir -p ${BUILD_DIR}/${extractLocation}
-    tar -C ${BUILD_DIR}/${extractLocation} -zxf "${CACHE_DIR}/${filename}"
+    mkdir -p ${extractLocation}
+    tar -C ${extractLocation} -zxf "${CACHE_DIR}/${filename}"
 }
 
 echo "-----> Compiling app: contents of BUILD_DIR ${BUILD_DIR} will be deployed as /app"
@@ -116,8 +119,10 @@ mkdir -p ${BUILD_DIR}/shared/{runtime,log}
 # check if we have Composer dependencies and vendors are not bundled
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   echo "-----> Installing Composer dependencies"
-  cached_download http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz ${VENDOR_DIR}
-  export PATH=${BUILD_DIR}/${VENDOR_DIR}/bin:$PATH
+  # we don't need svn on our slug... just need it on cache to help composer work during compile phase
+  svn_dir=${CACHE_DIR}/svn
+  export PATH=${svn_dir}/bin:$PATH
+  cached_download http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/subversion-1.7.8.tgz ${svn_dir}
 
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
