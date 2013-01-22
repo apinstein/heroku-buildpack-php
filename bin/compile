@@ -98,12 +98,10 @@ PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP
 mkdir -p ${PHP_PATH}
 cached_download ${PHP_URL} ${PHP_PATH}
 cp ${BUILDPACK_DIR}/support/php-fpm.conf ${BUILDPACK_DIR}/support/php.ini ${PHP_PATH}/
-mkdir -p $BUILD_DIR/run
-mkdir -p $BUILD_DIR/fcgi
-ln -s /app/www $BUILD_DIR/fcgi/
+ln -s www $BUILD_DIR/www-fastcgi
 
+echo "------> Creating shared directories at /app/shared"
 # create common directories for app to use
-mkdir -p ${BUILD_DIR}/shared
 mkdir -p ${BUILD_DIR}/shared/{runtime,log}
 
 # Preserve current php-fpm.conf so that env list does
