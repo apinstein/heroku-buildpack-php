@@ -100,7 +100,7 @@ cached_download ${PHP_URL} ${PHP_PATH}
 cp ${BUILDPACK_DIR}/support/php-fpm.conf ${BUILDPACK_DIR}/support/php.ini ${PHP_PATH}/
 ln -s www $BUILD_DIR/www-fastcgi
 
-echo "------> Creating shared directories at /app/shared"
+echo "-----> Creating shared directories at /app/shared"
 # create common directories for app to use
 mkdir -p ${BUILD_DIR}/shared/{runtime,log}
 
