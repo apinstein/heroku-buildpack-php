@@ -7,6 +7,9 @@
 # Before bin/compile is run, Heroku creates BUILD_DIR and your git repo's code is extracted there.
 # After bin/compile exits, Heroku will package the contents of BUILD_DIR into the slug, and on deployment
 # Heroku essentially runs cp -r BUILD_DIR/* /app/
+#
+# ASSUMPTIONS:
+# 1. /app/www/config/httpd.conf will exist and contain a valid VirtualHost directive for your app.
 
 # fail fast
 set -e
@@ -139,7 +142,7 @@ fi
 if [ -n ${CONFIG_MAGIC_PROFILE} ]; then
   echo "-----> Config magic processing profile: ${CONFIG_MAGIC_PROFILE}"
   cd www
-  ${BUILD_DIR}/${PHP_PATH}/bin/php vendor/bin/cfg ${CONFIG_MAGIC_PROFILE}
+  ${BUILD_DIR}/${PHP_PATH}/bin/php vendor/bin/cfg ${CONFIG_MAGIC_PROFILE} | indent
   cd ..
 fi
 

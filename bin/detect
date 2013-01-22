@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-if [ -f $1/index.php ]; then
-  echo "PHP" && exit 0
+if [[ -f $1/wwwroot/index.php && -f $1/config/templates/httpd.conf ]]; then
+  echo "PHOCOA Framework app" && exit 0
+elif [ -f $1/index.php ]; then
+  echo "Generic PHP App" && exit 0
 else
-  echo "no" && exit 1
+  echo "no valid php apps or frameworks detected" && exit 1
 fi
-
