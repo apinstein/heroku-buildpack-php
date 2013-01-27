@@ -10,6 +10,15 @@
 #
 # ASSUMPTIONS:
 # 1. /app/www/config/httpd.conf will exist and contain a valid VirtualHost directive for your app.
+# 2. Directory structure (created by this buildpack)
+#    /app/www                                   <=== Your code
+#    /app/shared/
+#                log/
+#                runtime/
+# 3. Supported Heroku Configs
+#    CONFIG_MAGIC_PROFILE - [optional] Profile name
+#    PHP_FPM_CONF         - [optional] Location to a custom php-fpm.conf
+#    PHP_INI              - [optional] Location to a custom php.ini
 
 # fail fast
 set -e
@@ -86,6 +95,10 @@ MOD_FASTCGI_VERSION="2.4.6"
 PHP_VERSION="5.3.21"
 PHP_PATH="${VENDOR_DIR}/php"
 
+# discover php.ini and php-fpm.conf setups
+BOOT_PHP_INI=${PHP_INI:-/app/${PHP_PATH}/php.ini}
+BOOT_PHP_FPM_CONF=${PHP_FPM_CONF:-/app/${PHP_PATH}/php-fpm.conf}
+
 mkdir -p ${APACHE_PATH}
 APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 cached_download ${APACHE_URL} ${APACHE_PATH}
@@ -100,6 +113,7 @@ echo "Bundling PHP FPM version $PHP_VERSION" | indent
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
 mkdir -p ${PHP_PATH}
 cached_download ${PHP_URL} ${PHP_PATH}
+
 cp ${BUILDPACK_DIR}/support/php-fpm.conf ${BUILDPACK_DIR}/support/php.ini ${PHP_PATH}/
 ln -s www $BUILD_DIR/www-fastcgi
 
@@ -156,9 +170,9 @@ echo "Launching php-fpm"
 # Expose Heroku config vars to PHP-FPM processes
 # From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
 for var in \`env|cut -f1 -d=\`; do
-  echo "env[\$var] = \${var}" >> /app/${PHP_PATH}/php-fpm.conf
+  echo "env[\$var] = \${var}" >> ${BOOT_PHP_FPM_CONF}
 done
-/app/${PHP_PATH}/sbin/php-fpm -y /app/${PHP_PATH}/php-fpm.conf -c /app/${PHP_PATH}/php.ini
+/app/${PHP_PATH}/sbin/php-fpm -y ${BOOT_PHP_FPM_CONF} -c ${BOOT_PHP_INI}
 
 echo "Launching apache"
 tail -F /app/shared/log/error_log &
