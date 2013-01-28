@@ -95,10 +95,6 @@ MOD_FASTCGI_VERSION="2.4.6"
 PHP_VERSION="5.3.21"
 PHP_PATH="${VENDOR_DIR}/php"
 
-# discover php.ini and php-fpm.conf setups
-BOOT_PHP_INI=${PHP_INI:-/app/${PHP_PATH}/php.ini}
-BOOT_PHP_FPM_CONF=${PHP_FPM_CONF:-/app/${PHP_PATH}/php-fpm.conf}
-
 mkdir -p ${APACHE_PATH}
 APACHE_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/apache-${APACHE_VERSION}.tgz"
 cached_download ${APACHE_URL} ${APACHE_PATH}
@@ -165,24 +161,33 @@ fi
 
 # this code needs info from this script, so it's easier to generate it inline here than copy an external template and munge values
 cat >>boot.sh <<EOF
-# This code runs on every dyno launch
+# This code runs whenever a web dyno is launched
 export LD_LIBRARY_PATH=/app/lib:/app/vendor/apache/lib:$LD_LIBRARY_PATH
-mkdir -p /app/vendor/var/log
+export PATH=/app/www/vendor/bin:/app/vendor/php/bin:/app/vendor/apache/bin:$PATH
 
-echo "Launching php-fpm"
-# Expose Heroku config vars to PHP-FPM processes
-# From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
-for var in \`env|cut -f1 -d=\`; do
-  echo "env[\$var] = \${var}" >> ${BOOT_PHP_FPM_CONF}
-done
-/app/${PHP_PATH}/sbin/php-fpm -y ${BOOT_PHP_FPM_CONF} -c ${BOOT_PHP_INI}
+# discover httpd.conf, php.ini and php-fpm.conf configs from config or default location
+BOOT_HTTPD_CONF=\${HTTPD_CONF:-/app/www/config/httpd.conf}
+BOOT_PHP_INI=\${PHP_INI:-/app/${PHP_PATH}/php.ini}
+BOOT_PHP_FPM_CONF=\${PHP_FPM_CONF:-/app/${PHP_PATH}/php-fpm.conf}
 
-echo "Launching apache"
+echo "Watching logs"
 tail -F /app/shared/log/error_log &
 tail -F /app/shared/log/access_log &
 tail -F /app/shared/log/php-fpm-error.log &
 tail -F /app/vendor/apache/logs/error_log &
 tail -F /app/vendor/apache/logs/access_log &
+
+echo "Launching php-fpm"
+# Expose Heroku config vars to PHP-FPM processes
+# From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
+chmod +w \${BOOT_PHP_FPM_CONF}
+for var in \`env|cut -f1 -d=\`; do
+  echo "env[\$var] = \${var}" >> \${BOOT_PHP_FPM_CONF}
+done
+/app/${PHP_PATH}/sbin/php-fpm -y \${BOOT_PHP_FPM_CONF} -c \${BOOT_PHP_INI}
+
+echo "Launching apache"
+echo "Include \${BOOT_HTTPD_CONF}" >> /app/${APACHE_PATH}/conf/httpd.conf
 exec /app/vendor/apache/bin/httpd -d /app/vendor/apache -DNO_DETACH
 EOF
 
