@@ -113,6 +113,9 @@ echo "Bundling PHP FPM version $PHP_VERSION" | indent
 PHP_URL="http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php-${PHP_VERSION}.tgz"
 mkdir -p ${PHP_PATH}
 cached_download ${PHP_URL} ${PHP_PATH}
+cached_download "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php_apc-3.1.14.tgz" ${PHP_PATH}
+cached_download "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/yaml-0.1.4.tgz" ${VENDOR_DIR}
+cached_download "http://util.cloud.tourbuzz.net.s3.amazonaws.com/heroku/builds/php_yaml-1.1.0.tgz" ${PHP_PATH}
 
 cp ${BUILDPACK_DIR}/support/php-fpm.conf ${BUILDPACK_DIR}/support/php.ini ${PHP_PATH}/
 ln -s www $BUILD_DIR/www-fastcgi
