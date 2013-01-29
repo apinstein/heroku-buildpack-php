@@ -19,6 +19,7 @@
 #    CONFIG_MAGIC_PROFILE - [optional] Profile name
 #    PHP_FPM_CONF         - [optional] Location to a custom php-fpm.conf
 #    PHP_INI              - [optional] Location to a custom php.ini
+#    COMPILE_TASK         - [optional] A task to run in your repo after all other dependencies 
 
 # fail fast
 set -e
@@ -157,6 +158,14 @@ if [ -n ${CONFIG_MAGIC_PROFILE} ]; then
   cd www
   ${BUILD_DIR}/${PHP_PATH}/bin/php vendor/bin/cfg ${CONFIG_MAGIC_PROFILE} | indent
   cd ..
+fi
+
+# run option task
+if [ -n "${COMPILE_TASK}" ]; then
+    echo "-----> Running COMPILE_TASK: ${COMPILE_TASK}"
+    cd www
+    (${COMPILE_TASK} 2>&1) | indent
+    cd ..
 fi
 
 # this code needs info from this script, so it's easier to generate it inline here than copy an external template and munge values
