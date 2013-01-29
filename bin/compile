@@ -184,6 +184,8 @@ chmod +w \${BOOT_PHP_FPM_CONF}
 for var in \`env|cut -f1 -d=\`; do
   echo "env[\$var] = \${var}" >> \${BOOT_PHP_FPM_CONF}
 done
+# do not look at any .ini files besides the one our app provides
+export PHP_INI_SCAN_DIR=''
 /app/${PHP_PATH}/sbin/php-fpm -y \${BOOT_PHP_FPM_CONF} -c \${BOOT_PHP_INI}
 
 echo "Launching apache"
