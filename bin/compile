@@ -20,6 +20,7 @@
 #    PHP_FPM_CONF         - [optional] Location to a custom php-fpm.conf
 #    PHP_INI              - [optional] Location to a custom php.ini
 #    COMPILE_TASK         - [optional] A task to run in your repo after all other dependencies 
+#    BIN_REPO             - [optional] A git URL that will be checked out into /app/local, perfect for app-specific bin repos
 
 # fail fast
 set -e
@@ -160,7 +161,13 @@ if [ -n ${CONFIG_MAGIC_PROFILE} ]; then
   cd ..
 fi
 
-# run option task
+# install optional app binaries
+if [ -n "${BIN_REPO}" ]; then
+    echo "-----> Installing app-specific binaries from ${BIN_REPO} into /app/local"
+    (git clone ${BIN_REPO} local 2>&1) | indent
+fi
+
+# run optional task
 if [ -n "${COMPILE_TASK}" ]; then
     echo "-----> Running COMPILE_TASK: ${COMPILE_TASK}"
     cd www

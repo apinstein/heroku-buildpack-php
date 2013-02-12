@@ -38,6 +38,7 @@ App-Specific Tuning
 - If your app has a composer.json file, all composer deps will be installed at deploy time. The composer vendor dir is cached for fast re-deploys.
 - If you use config-magic, ```heroku config:add CONFIG_MAGIC_PROFILE profile-name```
 - If you want to supply your own php-fpm.conf ```heroku config:add PHP_FPM_CONF``` or php.ini ```heroku config:add PHP_INI```
+- If your app has custom binaries, you can maintain a git repo with an entire "filesystem" and install it to /app/local with ```heroku config:add BIN_REPO=https://github.com/myname/mybinrepo```
 - If you want to customize the slug with an app-specific task ```heroku config:add COMPILE_TASK "rake app:setup"```
 
 Hacking
