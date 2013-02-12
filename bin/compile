@@ -198,7 +198,7 @@ echo "Launching php-fpm"
 # From: https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/bin/compile
 chmod +w \${BOOT_PHP_FPM_CONF}
 for var in \`env|cut -f1 -d=\`; do
-  echo "env[\$var] = \${var}" >> \${BOOT_PHP_FPM_CONF}
+  echo "env[\$var] = \\$\${var}" >> \${BOOT_PHP_FPM_CONF}
 done
 # do not look at any .ini files besides the one our app provides
 export PHP_INI_SCAN_DIR=''
