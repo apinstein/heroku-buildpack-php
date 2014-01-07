@@ -3,14 +3,20 @@ Apache Worker MPM + fastcgi + php-fpm build pack
 
 This is a build pack bundling PHP and Apache for Heroku apps.
 
-Configuration
--------------
+Initial Setup
+-------------------
+- Configure your heroku app to use the buildpack:
 
-The config files are bundled with the build pack itself:
+```heroku config:set BUILDPACK_URL=https://github.com/apinstein/heroku-buildpack-php```
 
-* conf/httpd.conf
-* conf/php.ini
+or more appropriately, a particular version:
+```heroku config:set BUILDPACK_URL=https://github.com/apinstein/heroku-buildpack-php/commit/7ad2e30050cdc346ed3eb2f2f537f13489a63bdf```
 
+- Set up required config files for your app:
+
+```
+conf/httpd.conf
+```
 
 Pre-compiling binaries
 ----------------------
@@ -28,9 +34,6 @@ The buildpack currently uses the worker mpm defaults for Apache (see support/htt
 The php-fpm config (see support/php-fpm.conf) is tuned to a max of 30 php processes, but aims to stay around 10.
 
 This is a pretty good setup for a heroku dyno and shouldn't need tuning unless proven troublesome with extensive production data.
-
-App-Specific Tuning
--------------------
 
 App-Specific Tuning
 -------------------
